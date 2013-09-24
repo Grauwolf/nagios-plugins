@@ -8,7 +8,7 @@ use Storable qw/store retrieve/;
 my $limit     = 0.75;
 my $statefile = '/tmp/icinga-cpu-overload.state';
 
-my %data_diff;
+my $data_diff;
 my $data_old;
 my $data_new = parse_data();
 
@@ -23,16 +23,16 @@ store $data_new, $statefile or die "Can't store %data_new to $statefile!\n";
 my $alert;
 for my $cpu ( sort keys %{ $data_new } ) {
     for my $key ( keys %{ $data_new->{ $cpu } } ) {
-        $data_diff{ $cpu }{ $key } = $data_new->{ $cpu }->{ $key } - $data_old->{ $cpu }->{ $key };
+        $data_diff->{ $cpu }->{ $key } = $data_new->{ $cpu }->{ $key } - $data_old->{ $cpu }->{ $key };
     }
 
-    my $user     = $data_new->{ $cpu }->{user};
-    my $irq      = $data_new->{ $cpu }->{irq};
-    my $softirq  = $data_new->{ $cpu }->{softirq};
-    my $system   = $data_new->{ $cpu }->{system};
-    my $nice     = $data_new->{ $cpu }->{nice};
-    my $iowait   = $data_new->{ $cpu }->{iowait};
-    my $idle     = $data_new->{ $cpu }->{idle};
+    my $user     = $data_diff->{ $cpu }->{user};
+    my $irq      = $data_diff->{ $cpu }->{irq};
+    my $softirq  = $data_diff->{ $cpu }->{softirq};
+    my $system   = $data_diff->{ $cpu }->{system};
+    my $nice     = $data_diff->{ $cpu }->{nice};
+    my $iowait   = $data_diff->{ $cpu }->{iowait};
+    my $idle     = $data_diff->{ $cpu }->{idle};
 
     if ( (($system + $irq + $softirq) / ($user + $nice + $iowait + $idle)) > $limit ) {
         $alert .= " $cpu";
